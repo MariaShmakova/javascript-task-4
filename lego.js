@@ -84,13 +84,13 @@ exports.sortBy = function (property, order) {
         switch (order) {
             case 'asc':
                 collection = collection.sort(function (personA, personB) {
-                    return personA[property] - personB[property];
+                    return personA[property] > personB[property];
                 });
                 break;
 
             case 'desc':
                 collection = collection.sort(function (personA, personB) {
-                    return personB[property] - personA[property];
+                    return personB[property] > personA[property];
                 });
                 break;
 

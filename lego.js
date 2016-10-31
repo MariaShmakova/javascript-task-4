@@ -4,67 +4,129 @@
  * Сделано задание на звездочку
  * Реализованы методы or и and
  */
-exports.isStar = true;
+exports.isStar = false;
 
-/**
- * Запрос к коллекции
- * @param {Array} collection
- * @params {...Function} – Функции для запроса
- * @returns {Array}
- */
+var ORDER_COMMANDS = ['filterIn', 'sortBy', 'select', 'limit', 'format'];
+
+function sortCommands(commandA, commandB) {
+    return ORDER_COMMANDS.indexOf(commandA.name) - ORDER_COMMANDS.indexOf(commandB.name);
+}
+
+function emptyCollection(collection) {
+    var arrCheckEmpty = collection.map(function (person) {
+        if (Object.keys(person).length !== 0) {
+            return false;
+        }
+
+        return true;
+    });
+    if (arrCheckEmpty.indexOf(true) !== -1) {
+        return true;
+    }
+
+    return false;
+}
 exports.query = function (collection) {
-    return collection;
+    var copyCollection = [];
+    collection.forEach(function (person) {
+        copyCollection.push(Object.assign({}, person));
+    });
+
+    if (arguments.length === 1) {
+        return copyCollection;
+    }
+    var commands = Array.prototype.slice.call(arguments, 1);
+    commands = commands.sort(sortCommands);
+    for (var i = 0; i < commands.length; i++) {
+        copyCollection = commands[i](copyCollection);
+    }
+    if (emptyCollection(copyCollection)) {
+        return [];
+    }
+
+    return copyCollection;
 };
 
-/**
- * Выбор полей
- * @params {...String}
- */
 exports.select = function () {
-    return;
+    var fields = [];
+    for (var i = 0; i < arguments.length; i++) {
+        fields.push(arguments[i]);
+    }
+
+    return function select(collection) {
+
+        return collection.map(function (person) {
+            for (var key in person) {
+                if (fields.indexOf(key) === -1) {
+                    delete person[key];
+                }
+            }
+
+            return person;
+        });
+
+    };
 };
 
-/**
- * Фильтрация поля по массиву значений
- * @param {String} property – Свойство для фильтрации
- * @param {Array} values – Доступные значения
- */
 exports.filterIn = function (property, values) {
-    console.info(property, values);
+    return function filterIn(collection) {
+        return collection.filter(function (person) {
+            return (values.indexOf(person[property]) !== -1);
+        });
 
-    return;
+    };
+
 };
 
-/**
- * Сортировка коллекции по полю
- * @param {String} property – Свойство для фильтрации
- * @param {String} order – Порядок сортировки (asc - по возрастанию; desc – по убыванию)
- */
 exports.sortBy = function (property, order) {
-    console.info(property, order);
 
-    return;
+    return function sortBy(collection) {
+        switch (order) {
+            case 'asc':
+                collection = collection.sort(function (personA, personB) {
+                    return personA[property] - personB[property];
+                });
+                break;
+
+            case 'desc':
+                collection = collection.sort(function (personA, personB) {
+                    return personB[property] - personA[property];
+                });
+                break;
+
+            default:
+                break;
+        }
+
+        return collection;
+
+    };
 };
 
-/**
- * Форматирование поля
- * @param {String} property – Свойство для фильтрации
- * @param {Function} formatter – Функция для форматирования
- */
+
 exports.format = function (property, formatter) {
-    console.info(property, formatter);
 
-    return;
+    return function format(collection) {
+
+        return collection.map(function (person) {
+            if (Object.keys(person).indexOf(property) !== -1) {
+                var value = person[property];
+                person[property] = formatter(value);
+            }
+
+            return person;
+        });
+
+    };
 };
 
-/**
- * Ограничение количества элементов в коллекции
- * @param {Number} count – Максимальное количество элементов
- */
 exports.limit = function (count) {
-    console.info(count);
+    return function limit(collection) {
+        var limitCollection = collection.slice(0, count);
 
-    return;
+        return limitCollection;
+
+    };
 };
 
 if (exports.isStar) {

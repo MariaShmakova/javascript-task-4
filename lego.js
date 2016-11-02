@@ -4,9 +4,9 @@
  * Сделано задание на звездочку
  * Реализованы методы or и and
  */
-exports.isStar = false;
+exports.isStar = true;
 
-var ORDER_COMMANDS = ['filterIn', 'sortBy', 'select', 'limit', 'format'];
+var ORDER_COMMANDS = ['filterIn', 'or', 'and', 'sortBy', 'select', 'limit', 'format'];
 
 function sortCommands(commandA, commandB) {
     return ORDER_COMMANDS.indexOf(commandA.name) - ORDER_COMMANDS.indexOf(commandB.name);
@@ -131,21 +131,35 @@ exports.limit = function (count) {
 
 if (exports.isStar) {
 
-    /**
-     * Фильтрация, объединяющая фильтрующие функции
-     * @star
-     * @params {...Function} – Фильтрующие функции
-     */
     exports.or = function () {
-        return;
+        var filters = [];
+        for (var i = 0; i < arguments.length; i++) {
+            filters.push(arguments[i]);
+        }
+
+        return function or(collection) {
+            return collection.filter(function (person) {
+                return filters.some(function (currentFilter) {
+
+                    return currentFilter(collection).indexOf(person) !== -1;
+                });
+            });
+        };
     };
 
-    /**
-     * Фильтрация, пересекающая фильтрующие функции
-     * @star
-     * @params {...Function} – Фильтрующие функции
-     */
     exports.and = function () {
-        return;
+        var filters = [];
+        for (var i = 0; i < arguments.length; i++) {
+            filters.push(arguments[i]);
+        }
+
+        return function and(collection) {
+            return collection.filter(function (person) {
+                return filters.every(function (currentFilter) {
+
+                    return currentFilter(collection).indexOf(person) !== -1;
+                });
+            });
+        };
     };
 }

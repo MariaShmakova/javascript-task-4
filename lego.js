@@ -35,11 +35,13 @@ exports.query = function (collection) {
     if (arguments.length === 1) {
         return copyCollection;
     }
-    var commands = Array.prototype.slice.call(arguments, 1);
+    var commands = [].slice.call(arguments, 1);
     commands = commands.sort(sortCommands);
-    for (var i = 0; i < commands.length; i++) {
-        copyCollection = commands[i](copyCollection);
-    }
+
+    commands.forEach(function (command) {
+        copyCollection = command(copyCollection);
+    });
+
     if (emptyCollection(copyCollection)) {
         return [];
     }
@@ -48,14 +50,11 @@ exports.query = function (collection) {
 };
 
 exports.select = function () {
-    var fields = [];
-    for (var i = 0; i < arguments.length; i++) {
-        fields.push(arguments[i]);
-    }
+    var fields = [].slice.call(arguments, 0);
 
     return function select(collection) {
 
-        return collection.map(function (person) {
+        return collection.filter(function (person) {
             for (var key in person) {
                 if (fields.indexOf(key) === -1) {
                     delete person[key];
@@ -71,7 +70,7 @@ exports.select = function () {
 exports.filterIn = function (property, values) {
     return function filterIn(collection) {
         return collection.filter(function (person) {
-            return (values.indexOf(person[property]) !== -1);
+            return values.indexOf(person[property]) !== -1;
         });
 
     };
@@ -81,22 +80,12 @@ exports.filterIn = function (property, values) {
 exports.sortBy = function (property, order) {
 
     return function sortBy(collection) {
-        switch (order) {
-            case 'asc':
-                collection = collection.sort(function (personA, personB) {
-                    return personA[property] > personB[property];
-                });
-                break;
 
-            case 'desc':
-                collection = collection.sort(function (personA, personB) {
-                    return personB[property] > personA[property];
-                });
-                break;
-
-            default:
-                break;
-        }
+        collection = (order === 'asc') ? collection.sort(function (personA, personB) {
+            return personA[property] > personB[property];
+        }) : collection = collection.sort(function (personA, personB) {
+            return personB[property] > personA[property];
+        });
 
         return collection;
 
@@ -132,10 +121,7 @@ exports.limit = function (count) {
 if (exports.isStar) {
 
     exports.or = function () {
-        var filters = [];
-        for (var i = 0; i < arguments.length; i++) {
-            filters.push(arguments[i]);
-        }
+        var filters = [].slice.call(arguments, 0);
 
         return function or(collection) {
             return collection.filter(function (person) {
@@ -148,10 +134,7 @@ if (exports.isStar) {
     };
 
     exports.and = function () {
-        var filters = [];
-        for (var i = 0; i < arguments.length; i++) {
-            filters.push(arguments[i]);
-        }
+        var filters = [].slice.call(arguments, 0);
 
         return function and(collection) {
             return collection.filter(function (person) {

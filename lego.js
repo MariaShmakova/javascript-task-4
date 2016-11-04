@@ -12,20 +12,6 @@ function sortCommands(commandA, commandB) {
     return ORDER_COMMANDS.indexOf(commandA.name) - ORDER_COMMANDS.indexOf(commandB.name);
 }
 
-function emptyCollection(collection) {
-    var arrCheckEmpty = collection.map(function (person) {
-        if (Object.keys(person).length !== 0) {
-            return false;
-        }
-
-        return true;
-    });
-    if (arrCheckEmpty.indexOf(true) !== -1) {
-        return true;
-    }
-
-    return false;
-}
 exports.query = function (collection) {
     var copyCollection = [];
     collection.forEach(function (person) {
@@ -42,10 +28,6 @@ exports.query = function (collection) {
         copyCollection = command(copyCollection);
     });
 
-    if (emptyCollection(copyCollection)) {
-        return [];
-    }
-
     return copyCollection;
 };
 
@@ -53,8 +35,7 @@ exports.select = function () {
     var fields = [].slice.call(arguments, 0);
 
     return function select(collection) {
-
-        return collection.filter(function (person) {
+        return collection.map(function (person) {
             for (var key in person) {
                 if (fields.indexOf(key) === -1) {
                     delete person[key];
@@ -80,14 +61,12 @@ exports.filterIn = function (property, values) {
 exports.sortBy = function (property, order) {
 
     return function sortBy(collection) {
+        return collection.sort(function (personA, personB) {
+            var ruleAsc = personA[property] > personB[property];
+            var ruleDesc = personB[property] > personA[property];
 
-        collection = (order === 'asc') ? collection.sort(function (personA, personB) {
-            return personA[property] > personB[property];
-        }) : collection = collection.sort(function (personA, personB) {
-            return personB[property] > personA[property];
+            return order === 'asc' ? ruleAsc : ruleDesc;
         });
-
-        return collection;
 
     };
 };
@@ -96,7 +75,6 @@ exports.sortBy = function (property, order) {
 exports.format = function (property, formatter) {
 
     return function format(collection) {
-
         return collection.map(function (person) {
             if (Object.keys(person).indexOf(property) !== -1) {
                 var value = person[property];

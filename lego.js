@@ -51,14 +51,17 @@ exports.filterIn = function (property, values) {
 exports.sortBy = function (property, order) {
     return function sortBy(collection) {
         return collection.sort(function (personA, personB) {
-            var ruleAsc = Number(personA[property] > personB[property]);
-            var ruleDesc = Number(personB[property] > personA[property]);
+            if (personA[property] > personB[property]) {
+                return order === 'asc' ? 1 : -1;
+            }
+            if (personA[property] < personB[property]) {
+                return order === 'asc' ? -1 : 1;
+            }
 
-            return order === 'asc' ? ruleAsc : ruleDesc;
+            return 0;
         });
     };
 };
-
 
 exports.format = function (property, formatter) {
     return function format(collection) {
